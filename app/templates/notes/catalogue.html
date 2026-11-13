@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import note_card with context %}
+{% block title %}Study notes{% endblock %}
+{% block content %}
+<section class="page-head"><h1>Study notes</h1>
+<p class="muted">Free notes open straight away. Paid notes stay locked until your payment is confirmed.</p></section>
+
+<form class="filters" method="get" action="{{ url_for('notes.catalogue') }}">
+  <div class="field"><label for="q">Search</label><input id="q" name="q" type="search" value="{{ q }}" maxlength="100"></div>
+  <div class="field"><label for="exam_id">Examination</label>
+    <select id="exam_id" name="exam_id"><option value="">All</option>
+      {% for e in exams %}<option value="{{ e.id }}"{% if exam_id == e.id %} selected{% endif %}>{{ e.name }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="subject">Subject</label>
+    <select id="subject" name="subject"><option value="">All</option>
+      {% for s in subjects %}<option value="{{ s }}"{% if subject == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="access">Price</label>
+    <select id="access" name="access">
+      <option value="">Free and paid</option>
+      <option value="free"{% if access == 'free' %} selected{% endif %}>Free only</option>
+      <option value="paid"{% if access == 'paid' %} selected{% endif %}>Paid only</option>
+    </select></div>
+  <button class="button" type="submit">Apply filters</button>
+</form>
+
+{% if not total %}
+  <section class="empty"><h2>No notes match these filters.</h2><p>Clear a filter or search with fewer words.</p></section>
+{% endif %}
+
+{% for exam_name, subjects_map in grouped.items() %}
+<section>
+  <h2>{{ exam_name }}</h2>
+  {% for subject_name, items in subjects_map.items() %}
+    <h3 class="subject">{{ subject_name }}</h3>
+    <div class="grid">{% for note in items %}{{ note_card(note, decisions[note.id]) }}{% endfor %}</div>
+  {% endfor %}
+</section>
+{% endfor %}
+{% endblock %}

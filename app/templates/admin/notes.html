@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf with context %}
+{% block title %}Manage notes{% endblock %}
+{% block content %}
+<h1>Study notes</h1>
+{% include "admin/_nav.html" %}
+<p><a class="button" href="{{ url_for('admin.note_new') }}">Add note</a></p>
+{% if notes %}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Title</th><th>Examination</th><th>Subject</th><th>Access</th><th>File</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for n in notes %}
+    <tr>
+      <td>{{ n.title }}</td>
+      <td>{{ n.exam_name or 'General' }}</td>
+      <td>{{ n.subject }}</td>
+      <td>{% if n.is_free %}Free{% else %}{{ n.price_paise|rupees }}{% endif %}</td>
+      <td>{% if n.file_path %}{{ n.original_filename }}{% else %}<span class="badge verify">No file</span>{% endif %}</td>
+      <td>{{ 'Published' if n.is_published else 'Hidden' }}</td>
+      <td class="actions">
+        <a href="{{ url_for('admin.note_edit', note_id=n.id) }}">Edit</a>
+        <form class="inline" method="post" action="{{ url_for('admin.note_delete', note_id=n.id) }}" data-confirm="Remove {{ n.title }}?">
+          {{ csrf() }}<button class="link-button danger" type="submit">Remove</button></form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}<section class="empty"><h2>No notes yet.</h2><p>Add a note and upload its file.</p></section>{% endif %}
+{% endblock %}

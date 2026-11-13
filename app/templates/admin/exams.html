@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf with context %}
+{% block title %}Manage examinations{% endblock %}
+{% block content %}
+<h1>Examinations</h1>
+{% include "admin/_nav.html" %}
+<p><a class="button" href="{{ url_for('admin.exam_new') }}">Add examination</a></p>
+{% if exams %}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Name</th><th>Category</th><th>Eligibility rules</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for e in exams %}
+    <tr>
+      <td>{{ e.name }}{% if e.is_sample %} <span class="badge sample">Sample</span>{% endif %}</td>
+      <td>{{ e.category }}</td>
+      <td>{{ rules[e.id]|length }}{% if not rules[e.id] %} <span class="badge verify">None</span>{% endif %}</td>
+      <td>{{ 'Published' if e.is_published else 'Hidden' }}</td>
+      <td class="actions">
+        <a href="{{ url_for('admin.exam_edit', exam_id=e.id) }}">Edit</a>
+        <form class="inline" method="post" action="{{ url_for('admin.exam_delete', exam_id=e.id) }}" data-confirm="Remove {{ e.name }} and its eligibility rules?">
+          {{ csrf() }}<button class="link-button danger" type="submit">Remove</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}<section class="empty"><h2>No examinations yet.</h2><p>Add the first one, or run <code>flask --app run seed</code> for sample data.</p></section>{% endif %}
+{% endblock %}

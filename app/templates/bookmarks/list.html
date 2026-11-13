@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import exam_card with context %}
+{% block title %}Saved examinations{% endblock %}
+{% block content %}
+<h1>Saved examinations</h1>
+{% if not standard %}<p class="notice">Choose your standard to see whether you meet each examination's stored criteria. <a href="{{ url_for('main.select_standard') }}">Select standard</a></p>{% endif %}
+{% if items %}
+  <div class="grid">{% for item in items %}{{ exam_card(item) }}{% endfor %}</div>
+{% else %}
+  <section class="empty">
+    <h2>You have not saved any examinations yet.</h2>
+    <p>Open an examination and choose "Save" to keep track of it here.</p>
+    <p><a class="button" href="{{ url_for('exams.list_exams') }}">Browse examinations</a></p>
+  </section>
+{% endif %}
+{% endblock %}

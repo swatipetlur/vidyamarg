@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Administrator panel{% endblock %}
+{% block content %}
+<h1>Administrator panel</h1>
+{% include "admin/_nav.html" %}
+<div class="stats">
+  <div class="stat"><span class="stat-num">{{ stats.exams }}</span><span>Examinations</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.rules }}</span><span>Eligibility rules</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.notes }}</span><span>Notes</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.students }}</span><span>Students</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.paid }} / {{ stats.orders }}</span><span>Paid / all orders</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.revenue|rupees }}</span><span>Confirmed revenue</span></div>
+</div>
+<p>
+  <a class="button" href="{{ url_for('admin.exam_new') }}">Add examination</a>
+  <a class="button" href="{{ url_for('admin.note_new') }}">Add note</a>
+</p>
+<h2>Latest orders</h2>
+{% if orders %}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Order</th><th>Student</th><th>Note</th><th>Amount</th><th>Status</th></tr></thead>
+  <tbody>{% for o in orders %}
+    <tr><td>#{{ o.id }}</td><td>{{ o.user_name }}</td><td>{{ o.note_title }}</td><td>{{ o.amount_paise|rupees }}</td>
+        <td><span class="badge pay-{{ o.status }}">{{ o.status|capitalize }}</span></td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% else %}<p class="muted">No orders yet.</p>{% endif %}
+{% endblock %}

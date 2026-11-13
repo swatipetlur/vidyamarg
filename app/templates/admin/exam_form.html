@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf, field, textarea, select with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+{% include "admin/_nav.html" %}
+<form method="post" class="panel" novalidate>
+  {{ csrf() }}
+  {% if errors %}<p class="flash error">Please fix the highlighted fields.</p>{% endif %}
+  {{ field("Name", "name", form, errors, required=True, maxlength=200) }}
+  {{ field("Conducting body", "conducting_body", form, errors, maxlength=200) }}
+  {{ textarea("Description", "description", form, errors, rows=4, maxlength=3000) }}
+  <div class="row3">
+    {{ select("Category", "category", categories, form.get('category') or 'Other', errors) }}
+    {{ select("Board", "board", boards, form.get('board') or 'All', errors) }}
+    {{ select("Medium", "medium", mediums, form.get('medium') or 'All', errors) }}
+  </div>
+  <div class="row3">
+    {{ field("Registration opens", "registration_start", form, errors, type="date") }}
+    {{ field("Registration closes", "registration_end", form, errors, type="date") }}
+    {{ field("Exam date", "exam_date", form, errors, type="date") }}
+  </div>
+  {{ field("Fee information", "fee_info", form, errors, maxlength=200) }}
+  {{ field("Official link", "official_url", form, errors, type="url", help="Full address, for example https://example.org", maxlength=500) }}
+  {{ field("Link last checked", "link_last_checked", form, errors, type="date", help="Shown to students so they know how fresh the link is.") }}
+  <div class="checks">
+    <label><input type="checkbox" name="is_published" value="1"{% if form.get('is_published') in (1, '1', True) %} checked{% endif %}> Published (visible to students)</label>
+    <label><input type="checkbox" name="is_sample" value="1"{% if form.get('is_sample') in (1, '1', True) %} checked{% endif %}> Mark as sample data</label>
+  </div>
+  <button class="button" type="submit">Save examination</button>
+  <a class="button ghost" href="{{ url_for('admin.exams') }}">Cancel</a>
+</form>
+
+{% if exam %}
+<section class="panel">
+  <h2>Eligibility rules</h2>
+  <p class="muted">A student's standard is compared with each complete rule. An examination with no rules, or with incomplete rules, shows a verification notice.</p>
+  <p><a class="button small" href="{{ url_for('admin.rule_new', exam_id=exam.id) }}">Add rule</a></p>
+  {% if rule_list %}
+  <table class="table">
+    <thead><tr><th>Standards</th><th>Criteria</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for r in rule_list %}
+      <tr>
+        <td>{% if r.min_standard and r.max_standard %}{{ r.min_standard }} to {{ r.max_standard }}{% else %}<span class="badge verify">Incomplete</span>{% endif %}</td>
+        <td>{{ r.criteria_text or '-' }}</td>
+        <td class="actions"><a href="{{ url_for('admin.rule_edit', rule_id=r.id) }}">Edit</a>
+          <form class="inline" method="post" action="{{ url_for('admin.rule_delete', rule_id=r.id) }}" data-confirm="Remove this rule?">{{ csrf() }}<button class="link-button danger" type="submit">Remove</button></form></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="notice">No rules yet. Students will see a verification notice for this examination.</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

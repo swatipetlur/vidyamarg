@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf, field, textarea with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+{% include "admin/_nav.html" %}
+<p>Examination: <strong>{{ exam.name }}</strong></p>
+<form method="post" class="panel" novalidate>
+  {{ csrf() }}
+  {% if errors %}<p class="flash error">Please fix the highlighted fields.</p>{% endif %}
+  <div class="row3">
+    {{ field("Lowest standard (1-10)", "min_standard", form, errors, type="number") }}
+    {{ field("Highest standard (1-10)", "max_standard", form, errors, type="number") }}
+  </div>
+  <p class="help">Leave a standard blank only if the official data is unclear. Students will then see a verification notice instead of a match.</p>
+  {{ textarea("Criteria (shown to students)", "criteria_text", form, errors, rows=3, maxlength=500) }}
+  {{ field("Source note", "source_note", form, errors, maxlength=300, help="Where this rule came from, for example the official notice and its date.") }}
+  <button class="button" type="submit">Save rule</button>
+  <a class="button ghost" href="{{ url_for('admin.exam_edit', exam_id=exam.id) }}">Cancel</a>
+</form>
+{% endblock %}

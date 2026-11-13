@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf, eligibility_badge, state_badge, note_card with context %}
+{% block title %}{{ exam.name }}{% endblock %}
+{% block content %}
+<article class="detail">
+  <p><a href="{{ url_for('exams.list_exams') }}">&larr; Back to examinations</a></p>
+  <h1>{{ exam.name }}</h1>
+  <div class="badges">
+    {{ state_badge(state_key, state_label) }}
+    {% if exam.is_sample %}<span class="badge sample">Sample data</span>{% endif %}
+    {% if not exam.is_published %}<span class="badge locked">Hidden from students</span>{% endif %}
+  </div>
+  <p class="meta">{{ exam.category }}{% if exam.conducting_body %} &middot; {{ exam.conducting_body }}{% endif %} &middot; Board: {{ exam.board }} &middot; Medium: {{ exam.medium }}</p>
+  {% if exam.description %}<p>{{ exam.description }}</p>{% endif %}
+
+  <section class="panel">
+    <h2>Eligibility</h2>
+    {% if result %}
+      <p>{{ eligibility_badge(result) }} {{ result.message }}</p>
+      {% if result.criteria %}<ul>{% for c in result.criteria %}<li>{{ c }}</li>{% endfor %}</ul>{% endif %}
+    {% else %}
+      <p class="notice">Choose your standard to check eligibility. <a href="{{ url_for('main.select_standard', next=url_for('exams.detail', exam_id=exam.id)) }}">Select standard</a></p>
+    {% endif %}
+    {% if rules %}
+      <table class="table">
+        <thead><tr><th>Standards</th><th>Criteria</th><th>Source</th></tr></thead>
+        <tbody>
+        {% for r in rules %}
+          <tr>
+            <td>{% if r.min_standard and r.max_standard %}{% if r.min_standard == r.max_standard %}{{ r.min_standard }}{% else %}{{ r.min_standard }} to {{ r.max_standard }}{% endif %}{% else %}Not recorded{% endif %}</td>
+            <td>{{ r.criteria_text or '-' }}</td>
+            <td>{{ r.source_note or '-' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    <p class="muted">{{ disclaimer }}</p>
+  </section>
+
+  <section class="panel">
+    <h2>Dates and application</h2>
+    <dl class="facts wide">
+      <div><dt>Registration opens</dt><dd>{{ (exam.registration_start|date) or 'Not announced' }}</dd></div>
+      <div><dt>Registration closes</dt><dd>{{ (exam.registration_end|date) or 'Not announced' }}</dd></div>
+      <div><dt>Exam date</dt><dd>{{ (exam.exam_date|date) or 'Not announced' }}</dd></div>
+      <div><dt>Fee</dt><dd>{{ exam.fee_info or 'Check the official website' }}</dd></div>
+    </dl>
+    {% if exam.official_url %}
+      <p><a class="button" href="{{ exam.official_url }}" target="_blank" rel="noopener noreferrer">Open the official website</a></p>
+      <p class="muted">{% if exam.link_last_checked %}Link last checked on {{ exam.link_last_checked|date }}.{% else %}This link has not been checked yet. Confirm it is correct.{% endif %}</p>
+    {% else %}
+      <p class="notice">No official link is stored for this examination. Search for the conducting body's official website.</p>
+    {% endif %}
+    {% if current_user and current_user.role == 'student' %}
+      <form method="post" action="{{ url_for('bookmarks.toggle', exam_id=exam.id) }}">
+        {{ csrf() }}
+        <button class="button ghost" type="submit">{% if bookmarked %}Remove from saved{% else %}Save this examination{% endif %}</button>
+      </form>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Study notes for this examination</h2>
+    {% if notes %}
+      <div class="grid">{% for note in notes %}{{ note_card(note, access[note.id]) }}{% endfor %}</div>
+    {% else %}
+      <p class="muted">No notes have been added for this examination yet.</p>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}

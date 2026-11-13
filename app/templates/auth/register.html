@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf, field with context %}
+{% block title %}Create your account{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Create a student account</h1>
+  <form method="post" novalidate>
+    {{ csrf() }}
+    {{ field("Full name", "full_name", form, errors, required=True, maxlength=80) }}
+    {{ field("Email", "email", form, errors, type="email", required=True) }}
+    {{ field("Password", "password", form, errors, type="password", required=True, help="At least 8 characters.") }}
+    {{ field("Confirm password", "confirm_password", form, errors, type="password", required=True) }}
+    <div class="field{% if errors.get('standard') %} has-error{% endif %}">
+      <label for="standard">Current standard (optional)</label>
+      <select id="standard" name="standard">
+        <option value="">Choose later</option>
+        {% for n in range(1, 11) %}<option value="{{ n }}"{% if form.get('standard') == n|string %} selected{% endif %}>Standard {{ n }}</option>{% endfor %}
+      </select>
+      {% if errors.get('standard') %}<p class="error-text">{{ errors['standard'] }}</p>{% endif %}
+    </div>
+    <button class="button" type="submit">Create account</button>
+  </form>
+  <p class="muted">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a>.</p>
+</section>
+{% endblock %}

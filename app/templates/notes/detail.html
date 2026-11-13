@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import note_action with context %}
+{% block title %}{{ note.title }}{% endblock %}
+{% block content %}
+<article class="detail">
+  <p><a href="{{ url_for('notes.catalogue') }}">&larr; Back to study notes</a></p>
+  <h1>{{ note.title }}</h1>
+  <div class="badges">
+    {% if note.is_free %}<span class="badge free">Free</span>
+    {% elif decision.allowed %}<span class="badge eligible">You own this note</span>
+    {% else %}<span class="badge locked">Locked &middot; {{ note.price_paise|rupees }}</span>{% endif %}
+    {% if note.is_sample %}<span class="badge sample">Sample data</span>{% endif %}
+  </div>
+  <p class="meta">{{ note.subject }}{% if note.topic %} &middot; {{ note.topic }}{% endif %}
+    {% if note.exam_name %} &middot; For <a href="{{ url_for('exams.detail', exam_id=note.exam_id) }}">{{ note.exam_name }}</a>{% endif %}</p>
+  {% if note.description %}<p>{{ note.description }}</p>{% endif %}
+
+  <section class="panel">
+    {% if decision.allowed %}
+      {% if file_ready %}
+        <p>{{ note_action(note, decision) }}</p>
+        {% if note.original_filename %}<p class="muted">File: {{ note.original_filename }}</p>{% endif %}
+      {% else %}
+        <p class="notice">The file for this note is not available right now. Please try again later.</p>
+      {% endif %}
+    {% else %}
+      <p>{{ decision.message }}</p>
+      <p>{{ note_action(note, decision) }}</p>
+      {% if payment_provider() == 'mock' %}<p class="muted">Payments run in a test sandbox in this prototype. No real money is charged.</p>{% endif %}
+    {% endif %}
+  </section>
+</article>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro field(label, name, form, errors, type="text", required=False, help=None, maxlength=None) %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}{% if required %} <span class="muted">(required)</span>{% endif %}</label>
+  <input id="{{ name }}" name="{{ name }}" type="{{ type }}"{% if type != 'password' %} value="{{ form.get(name) if form.get(name) is not none else '' }}"{% endif %}{% if maxlength %} maxlength="{{ maxlength }}"{% endif %}{% if required %} required{% endif %}{% if errors.get(name) %} aria-invalid="true" aria-describedby="{{ name }}-err"{% endif %}>
+  {% if help %}<p class="help">{{ help }}</p>{% endif %}
+  {% if errors.get(name) %}<p class="error-text" id="{{ name }}-err">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro textarea(label, name, form, errors, rows=4, maxlength=None) %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}</label>
+  <textarea id="{{ name }}" name="{{ name }}" rows="{{ rows }}"{% if maxlength %} maxlength="{{ maxlength }}"{% endif %}>{{ form.get(name) if form.get(name) is not none else '' }}</textarea>
+  {% if errors.get(name) %}<p class="error-text">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select(label, name, options, selected, errors) %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}</label>
+  <select id="{{ name }}" name="{{ name }}">
+    {% for value in options %}<option value="{{ value }}"{% if value == selected %} selected{% endif %}>{{ value }}</option>{% endfor %}
+  </select>
+  {% if errors.get(name) %}<p class="error-text">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro eligibility_badge(result) %}
+  {% if result %}
+    <span class="badge {{ result.status }}">{{ result.label }}</span>
+  {% endif %}
+{% endmacro %}
+
+{% macro state_badge(state, label) %}
+  <span class="badge state-{{ state }}">{{ label }}</span>
+{% endmacro %}
+
+{% macro exam_card(item) %}
+{% set exam = item.exam %}
+<article class="card exam">
+  <div class="card-top">
+    <h3><a href="{{ url_for('exams.detail', exam_id=exam.id) }}">{{ exam.name }}</a></h3>
+    <div class="badges">
+      {{ eligibility_badge(item.result) }}
+      {{ state_badge(item.state, item.state_label) }}
+      {% if exam.is_sample %}<span class="badge sample">Sample data</span>{% endif %}
+    </div>
+  </div>
+  <p class="meta">{{ exam.category }}{% if exam.conducting_body %} &middot; {{ exam.conducting_body }}{% endif %}</p>
+  <p class="meta">Board: {{ exam.board }} &middot; Medium: {{ exam.medium }}</p>
+  {% if item.result and item.result.status == 'verify' %}
+    <p class="notice">{{ item.result.message }}</p>
+  {% endif %}
+  <dl class="facts">
+    {% if exam.registration_end %}<div><dt>Apply by</dt><dd>{{ exam.registration_end|date }}</dd></div>{% endif %}
+    {% if exam.exam_date %}<div><dt>Exam date</dt><dd>{{ exam.exam_date|date }}</dd></div>{% endif %}
+  </dl>
+  <div class="card-actions">
+    <a class="button small" href="{{ url_for('exams.detail', exam_id=exam.id) }}">View details</a>
+    {% if exam.official_url %}<a class="button small ghost" href="{{ exam.official_url }}" target="_blank" rel="noopener noreferrer">Official website</a>{% endif %}
+    {% if current_user and current_user.role == 'student' %}
+      <form class="inline" method="post" action="{{ url_for('bookmarks.toggle', exam_id=exam.id) }}">
+        {{ csrf() }}
+        <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+        <button class="button small ghost" type="submit">{% if item.bookmarked %}Remove from saved{% else %}Save{% endif %}</button>
+      </form>
+    {% endif %}
+  </div>
+</article>
+{% endmacro %}
+
+{% macro note_action(note, decision) %}
+  {% if decision.allowed %}
+    <a class="button small" href="{{ url_for('notes.download', note_id=note.id) }}">Download</a>
+  {% elif decision.code == 'login_required' %}
+    <a class="button small ghost" href="{{ url_for('auth.login', next=url_for('notes.detail', note_id=note.id)) }}">Log in to buy</a>
+  {% else %}
+    <form class="inline" method="post" action="{{ url_for('payments.checkout', note_id=note.id) }}">
+      {{ csrf() }}
+      <button class="button small" type="submit">Buy for {{ note.price_paise|rupees }}</button>
+    </form>
+  {% endif %}
+{% endmacro %}
+
+{% macro note_card(note, decision) %}
+<article class="card note">
+  <div class="card-top">
+    <h4><a href="{{ url_for('notes.detail', note_id=note.id) }}">{{ note.title }}</a></h4>
+    {% if note.is_free %}<span class="badge free">Free</span>
+    {% elif decision.allowed %}<span class="badge eligible">Purchased</span>
+    {% else %}<span class="badge locked">Locked &middot; {{ note.price_paise|rupees }}</span>{% endif %}
+  </div>
+  <p class="meta">{{ note.subject }}{% if note.topic %} &middot; {{ note.topic }}{% endif %}</p>
+  {% if note.description %}<p>{{ note.description }}</p>{% endif %}
+  {% if not note.is_published %}<p class="notice">Hidden from students.</p>{% endif %}
+  <div class="card-actions">{{ note_action(note, decision) }}</div>
+</article>
+{% endmacro %}

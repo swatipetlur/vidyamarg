@@ -1,0 +1,8 @@
+.env
+instance/*.db
+instance/*.db-*
+instance/protected_notes/
+__pycache__/
+*.pyc
+.venv/
+venv/

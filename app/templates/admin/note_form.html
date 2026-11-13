@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf, field, textarea with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+{% include "admin/_nav.html" %}
+<form method="post" enctype="multipart/form-data" class="panel" novalidate>
+  {{ csrf() }}
+  {% if errors %}<p class="flash error">Please fix the highlighted fields.</p>{% endif %}
+  {{ field("Title", "title", form, errors, required=True, maxlength=200) }}
+  <div class="row3">
+    {{ field("Subject", "subject", form, errors, required=True, maxlength=100) }}
+    {{ field("Topic", "topic", form, errors, maxlength=150) }}
+    <div class="field{% if errors.get('exam_id') %} has-error{% endif %}">
+      <label for="exam_id">Examination</label>
+      <select id="exam_id" name="exam_id">
+        <option value="">General (no examination)</option>
+        {% for e in exams %}<option value="{{ e.id }}"{% if form.get('exam_id')|string == e.id|string %} selected{% endif %}>{{ e.name }}</option>{% endfor %}
+      </select>
+      {% if errors.get('exam_id') %}<p class="error-text">{{ errors['exam_id'] }}</p>{% endif %}
+    </div>
+  </div>
+  {{ textarea("Description (visible before purchase)", "description", form, errors, rows=3, maxlength=2000) }}
+  <fieldset class="field{% if errors.get('access') or errors.get('price') %} has-error{% endif %}">
+    <legend>Access</legend>
+    <label><input type="radio" name="access" value="free"{% if form.get('access', 'free') == 'free' %} checked{% endif %}> Free</label>
+    <label><input type="radio" name="access" value="paid"{% if form.get('access') == 'paid' %} checked{% endif %}> Paid</label>
+    {{ field("Price in rupees (paid notes only)", "price", form, errors, type="text", help="For example 149 or 149.50") }}
+    {% if errors.get('access') %}<p class="error-text">{{ errors['access'] }}</p>{% endif %}
+  </fieldset>
+  <div class="field{% if errors.get('file') %} has-error{% endif %}">
+    <label for="file">File {% if note and note.original_filename %}(current: {{ note.original_filename }}; choose a new one to replace it){% endif %}</label>
+    <input id="file" name="file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.txt">
+    <p class="help">PDF is recommended. Also accepted: Word, PowerPoint, Excel, OpenDocument text and plain text. Maximum 16 MB. Files are stored privately and served only to people who have access.</p>
+    {% if errors.get('file') %}<p class="error-text">{{ errors['file'] }}</p>{% endif %}
+  </div>
+  <div class="checks">
+    <label><input type="checkbox" name="is_published" value="1"{% if form.get('is_published') in (1, '1', True) %} checked{% endif %}> Published (visible in the catalogue)</label>
+    <label><input type="checkbox" name="is_sample" value="1"{% if form.get('is_sample') in (1, '1', True) %} checked{% endif %}> Mark as sample data</label>
+  </div>
+  <button class="button" type="submit">Save note</button>
+  <a class="button ghost" href="{{ url_for('admin.notes') }}">Cancel</a>
+</form>
+{% endblock %}

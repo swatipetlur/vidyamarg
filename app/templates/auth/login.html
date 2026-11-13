@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf with context %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Log in</h1>
+  <form method="post" novalidate>
+    {{ csrf() }}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <div class="field"><label for="email">Email</label>
+      <input id="email" name="email" type="email" value="{{ email }}" autocomplete="username" required></div>
+    <div class="field"><label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required></div>
+    <button class="button" type="submit">Log in</button>
+  </form>
+  <p class="muted">New here? <a href="{{ url_for('auth.register') }}">Create a student account</a>. Administrators use the <a href="{{ url_for('auth.admin_login') }}">administrator login</a>.</p>
+</section>
+{% endblock %}

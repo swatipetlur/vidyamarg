@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}My orders{% endblock %}
+{% block content %}
+<h1>My orders</h1>
+{% if orders %}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Order</th><th>Note</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+  <tbody>
+  {% for o in orders %}
+    <tr><td><a href="{{ url_for('payments.status', order_id=o.id) }}">#{{ o.id }}</a></td>
+        <td><a href="{{ url_for('notes.detail', note_id=o.note_id) }}">{{ o.note_title }}</a></td>
+        <td>{{ o.amount_paise|rupees }}</td>
+        <td><span class="badge pay-{{ o.status }}">{{ o.status|capitalize }}</span></td>
+        <td>{{ o.created_at|datetime }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+  <section class="empty"><h2>No orders yet.</h2><p>Paid notes you buy will appear here.</p>
+  <p><a class="button" href="{{ url_for('notes.catalogue') }}">Browse study notes</a></p></section>
+{% endif %}
+{% endblock %}

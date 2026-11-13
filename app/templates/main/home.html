@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Find your examinations{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Choose your standard and see the examinations meant for you.</h1>
+  <p class="lead">Vidyamarga gathers competitive examinations, eligibility, official links and study notes for Standards 1 to 10 in one place.</p>
+  <form method="post" action="{{ url_for('main.select_standard') }}" class="standard-grid" aria-label="Choose your standard">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for n in standards %}
+      <button type="submit" name="standard" value="{{ n }}" class="std{% if selected == n %} current{% endif %}">
+        <span class="std-label">Standard</span><span class="std-num">{{ n }}</span>
+      </button>
+    {% endfor %}
+  </form>
+  {% if selected %}<p class="muted">You are viewing Standard {{ selected }}. <a href="{{ url_for('exams.list_exams') }}">Go to your examinations</a></p>{% endif %}
+</section>
+
+<section class="steps">
+  <h2>How it works</h2>
+  <ol>
+    <li><strong>Pick a standard.</strong> We list the examinations stored for it, with dates and the official link.</li>
+    <li><strong>Check eligibility.</strong> Your standard is compared with the stored criteria. If the data is missing, we tell you to verify it.</li>
+    <li><strong>Open study notes.</strong> Free notes open straight away. Paid notes unlock only after the payment is confirmed.</li>
+  </ol>
+  <p class="notice">{{ exam_count }} examination{{ '' if exam_count == 1 else 's' }} in the catalogue. Not every examination in India is listed.</p>
+</section>
+{% endblock %}

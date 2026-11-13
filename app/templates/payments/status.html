@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Payment status{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Payment status</h1>
+  <p><strong>{{ order.note_title }}</strong><br>Order #{{ order.id }} &middot; {{ order.amount_paise|rupees }}</p>
+  <p><span class="badge pay-{{ order.status }}">{{ order.status|capitalize }}</span></p>
+  {% if order.status == 'paid' %}
+    <p>Payment confirmed. Your note is unlocked.</p>
+    <p><a class="button" href="{{ url_for('notes.detail', note_id=order.note_id) }}">Open the note</a></p>
+  {% elif order.status == 'pending' or order.status == 'created' %}
+    <p class="notice">We are still waiting for the payment to be confirmed. The note stays locked until then.</p>
+    <p><a class="button ghost" href="{{ url_for('payments.status', order_id=order.id) }}">Check again</a></p>
+  {% else %}
+    <p class="notice">This payment did not go through, so the note stays locked.</p>
+    <p><a class="button" href="{{ url_for('notes.detail', note_id=order.note_id) }}">Back to the note</a></p>
+  {% endif %}
+</section>
+{% endblock %}

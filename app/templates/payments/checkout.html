@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf with context %}
+{% block title %}Pay for your note{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Pay with Razorpay</h1>
+  <p><strong>{{ order.note_title }}</strong><br>Amount: {{ order.amount_paise|rupees }}</p>
+  <p class="muted">Your note unlocks only after Razorpay confirms the payment to our server.</p>
+
+  <div id="rzp-config" hidden
+       data-key="{{ checkout.key_id }}" data-order-id="{{ order.provider_order_id }}"
+       data-amount="{{ checkout.amount }}" data-currency="{{ checkout.currency }}"
+       data-description="{{ order.note_title }}" data-name="{{ current_user.full_name }}" data-email="{{ current_user.email }}"></div>
+
+  <form id="verify-form" method="post" action="{{ url_for('payments.verify') }}">
+    {{ csrf() }}
+    <input type="hidden" name="order_id" value="{{ order.id }}">
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+  </form>
+  <form id="cancel-form" method="post" action="{{ url_for('payments.cancel', order_id=order.id) }}">{{ csrf() }}</form>
+
+  <button id="pay-button" class="button" type="button">Pay {{ order.amount_paise|rupees }}</button>
+  <p id="pay-error" class="error-text" hidden></p>
+</section>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="{{ url_for('static', filename='js/razorpay_checkout.js') }}"></script>
+{% endblock %}

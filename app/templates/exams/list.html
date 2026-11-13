@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import exam_card with context %}
+{% block title %}Examinations for Standard {{ standard }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <h1>Examinations for Standard {{ standard }}</h1>
+  <p><a href="{{ url_for('main.select_standard', next=url_for('exams.list_exams')) }}">Change standard</a></p>
+</section>
+
+<form class="filters" method="get" action="{{ url_for('exams.list_exams') }}">
+  <input type="hidden" name="standard" value="{{ standard }}">
+  <div class="field"><label for="q">Search</label><input id="q" name="q" type="search" value="{{ q }}" maxlength="100"></div>
+  <div class="field"><label for="category">Category</label>
+    <select id="category" name="category"><option value="">Any</option>
+      {% for c in categories %}<option value="{{ c }}"{% if c == category %} selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="board">Board</label>
+    <select id="board" name="board"><option value="">Any</option>
+      {% for b in boards if b != 'All' %}<option value="{{ b }}"{% if b == board %} selected{% endif %}>{{ b }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="medium">Medium</label>
+    <select id="medium" name="medium"><option value="">Any</option>
+      {% for m in mediums if m != 'All' %}<option value="{{ m }}"{% if m == medium %} selected{% endif %}>{{ m }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="view">Show</label>
+    <select id="view" name="view">
+      <option value="matching"{% if view == 'matching' %} selected{% endif %}>Matching and to verify</option>
+      <option value="all"{% if view == 'all' %} selected{% endif %}>All, including not for Standard {{ standard }}</option>
+    </select></div>
+  <button class="button" type="submit">Apply filters</button>
+</form>
+
+<p class="notice">{{ disclaimer }}</p>
+
+{% set eligible = groups['eligible'] %}
+{% set verify = groups['verify'] %}
+{% set others = groups['not_eligible'] %}
+
+{% if not eligible and not verify and (view != 'all' or not others) %}
+  <section class="empty">
+    <h2>No examinations match Standard {{ standard }} with these filters.</h2>
+    <p>Clear a filter, search with fewer words{% if others %}, or choose "All" to see the {{ others|length }} examination{{ '' if others|length == 1 else 's' }} meant for other standards{% endif %}.</p>
+  </section>
+{% endif %}
+
+{% if eligible %}
+<section>
+  <h2>Meets the stored criteria <span class="count">{{ eligible|length }}</span></h2>
+  <div class="grid">{% for item in eligible %}{{ exam_card(item) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if verify %}
+<section>
+  <h2>Eligibility to verify <span class="count">{{ verify|length }}</span></h2>
+  <p class="muted">We have no complete eligibility data for these. Check the official website before relying on them.</p>
+  <div class="grid">{% for item in verify %}{{ exam_card(item) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if view == 'all' and others %}
+<section>
+  <h2>Meant for other standards <span class="count">{{ others|length }}</span></h2>
+  <div class="grid">{% for item in others %}{{ exam_card(item) }}{% endfor %}</div>
+</section>
+{% endif %}
+{% endblock %}

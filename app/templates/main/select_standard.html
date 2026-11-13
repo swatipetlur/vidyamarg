@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Select your standard{% endblock %}
+{% block content %}
+<section class="hero compact">
+  <h1>Which standard are you in?</h1>
+  <form method="post" action="{{ url_for('main.select_standard') }}" class="standard-grid" aria-label="Choose your standard">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+    {% for n in standards %}
+      <button type="submit" name="standard" value="{{ n }}" class="std{% if selected == n %} current{% endif %}">
+        <span class="std-label">Standard</span><span class="std-num">{{ n }}</span>
+      </button>
+    {% endfor %}
+  </form>
+</section>
+{% endblock %}

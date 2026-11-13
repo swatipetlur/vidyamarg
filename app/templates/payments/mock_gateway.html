@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import csrf with context %}
+{% block title %}Test payment{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Test payment gateway</h1>
+  <p class="notice">This is a local sandbox for demos. No real money moves. Choose how this payment should end.</p>
+  <p><strong>{{ order.note_title }}</strong><br>Amount: {{ order.amount_paise|rupees }}</p>
+  <form method="post" class="stack">
+    {{ csrf() }}
+    <button class="button" type="submit" name="outcome" value="success">Pay {{ order.amount_paise|rupees }} (success)</button>
+    <button class="button ghost" type="submit" name="outcome" value="fail">Simulate a failed payment</button>
+    <button class="button ghost" type="submit" name="outcome" value="pending">Simulate a pending payment</button>
+    <button class="button ghost" type="submit" name="outcome" value="cancel">Cancel</button>
+  </form>
+</section>
+{% endblock %}
